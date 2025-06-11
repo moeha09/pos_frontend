@@ -24,13 +24,21 @@ jobs:
           node-version: '22.x'
 
       - name: npm install, build, and test
+        env: 
+          NEXT_PUBRIC_API_ENDPOINT: ${{ secrets.NEXT_PUBRIC_API_ENDPOINT}} #1追加
         run: |
           npm install
           npm run build --if-present
           npm run test --if-present
+      #2追加
+      - name: Copy artifact for deplpyment job
+        run: |
+          mkdir deploy
+          cp -r ./.next/standalone/. ./deploy
+          cp -r ./.next/static/. ./deploy/.next/static  
 
       - name: Zip artifact for deployment
-        run: zip release.zip ./* -r
+        run: zip release.zip ./deploy -r #3
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -60,5 +68,5 @@ jobs:
         with:
           app-name: 'app-step4-47'
           slot-name: 'Production'
-          package: .
+          package: ./deploy #4
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_2E99E9BC01D0466EBFF43761BBF86E1B }}
